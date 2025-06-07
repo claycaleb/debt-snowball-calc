@@ -5,40 +5,48 @@ from datetime import datetime, timedelta
 
 st.set_page_config(page_title=None, page_icon=None, layout="wide", initial_sidebar_state="auto", menu_items=None)
 
-st.slider("Extra Monthly Payment", 0, 1000)
+st.header("Debt Snowball Calculator")
 
-# Initialize columns and text
-col1, col2, col3, col4, col5 = st.columns(5)
+with st.container():
+    st.text("Extra Monthly Payment")
+    st.slider("Extra Monthly Payment", 0, 1000, label_visibility="collapsed")
 
-with col1:
-    st.text("Account Name")
-with col2:
-    st.text("Type of Debt")
-with col3:
-    st.text("Current Balance")
-with col4:
-    st.text("Minimum Payment")
-with col5:
-    st.text("Interest Rate")
+with st.container():
+
+    # Initialize columns and text
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+        st.text("Account Name")
+    with col2:
+        st.text("Type of Debt")
+    with col3:
+        st.text("Current Balance")
+    with col4:
+        st.text("Minimum Payment")
+    with col5:
+        st.text("Interest Rate")
 
 if "totalDebts" not in st.session_state:
     st.session_state.totalDebts = 1
 
 def render_debt_row(index):
-    with col1:
-        account_name = st.text_input("Account Name", key=f"acctName{index}", label_visibility="collapsed")
+    with st.container():
 
-    with col2:
-        debt_type = st.selectbox("Type of Debt", ("Credit Card", "Auto Loan", "Personal Loan", "Student Loan", "Mortgage", "Line of Credit"), key=f"debtType{index}", label_visibility="collapsed")
+        with col1:
+            account_name = st.text_input("Account Name", key=f"acctName{index}", label_visibility="collapsed")
 
-    with col3:
-        balance = st.number_input("Current Balance", format="%.2f", key=f"currentBal{index}", min_value=0.00, value=None, label_visibility="collapsed", placeholder="$")
+        with col2:
+            debt_type = st.selectbox("Type of Debt", ("Credit Card", "Auto Loan", "Personal Loan", "Student Loan", "Mortgage", "Line of Credit"), key=f"debtType{index}", label_visibility="collapsed")
 
-    with col4:
-        min_payment = st.number_input("Minimum Payment", format="%.2f", key=f"minPayment{index}", min_value=0.00, value=None, label_visibility="collapsed", placeholder="$")
+        with col3:
+            balance = st.number_input("Current Balance", format="%.2f", key=f"currentBal{index}", min_value=0.00, value=None, label_visibility="collapsed", placeholder="$")
 
-    with col5:
-        interest_rate = st.number_input("Interest Rate", format="%.2f", key=f"intRate{index}", min_value=0.00, value=None, label_visibility="collapsed", placeholder="%")
+        with col4:
+            min_payment = st.number_input("Minimum Payment", format="%.2f", key=f"minPayment{index}", min_value=0.00, value=None, label_visibility="collapsed", placeholder="$")
+
+        with col5:
+            interest_rate = st.number_input("Interest Rate", format="%.2f", key=f"intRate{index}", min_value=0.00, value=None, label_visibility="collapsed", placeholder="%")
 
     compounding_lookup = {
         "Credit Card": "daily",
@@ -59,12 +67,17 @@ def render_debt_row(index):
         "interest_rate": interest_rate
     }
 
-if st.button("Add Debt"):
-    st.session_state.totalDebts += 1
+with st.container():
+    ncol1, ncol2, ncol3 = st.columns([0.79, 0.09, 0.12])
 
-if st.button("Remove Debt"):
-    if st.session_state.totalDebts > 1: 
-        st.session_state.totalDebts -= 1
+    with ncol2:
+        if st.button("Add Debt"):
+            st.session_state.totalDebts += 1
+
+    with ncol3:
+        if st.button("Remove Debt"):
+            if st.session_state.totalDebts > 1: 
+                st.session_state.totalDebts -= 1
 
 debts = []
 for i in range(1, st.session_state.totalDebts + 1):
@@ -139,15 +152,17 @@ for i in range(len(debts)):
     payment = debts[i]["min_payment"]
     rate = debts[i]["interest_rate"]
     compounding = debts[i]["compounding"]
-    if compounding == "monthly":
-        result = calculate_monthly_interest(balance, rate, payment)
-    if compounding == "daily":
-        result = simulate_daily_interest(balance, rate, payment)
-    st.write(result)
-    st.session_state.totalMonths += result["months"]
-    st.session_state.totalInterest += result["total_interest"]
-    st.session_state.totalPaid += result["total_paid"]
+    if balance and payment and rate: 
+        if compounding == "monthly":
+            result = calculate_monthly_interest(balance, rate, payment)
+        elif compounding == "daily":
+            result = simulate_daily_interest(balance, rate, payment)
+        st.write(result)
+        st.session_state.totalMonths += result["months"]
+        st.session_state.totalInterest += result["total_interest"]
+        st.session_state.totalPaid += result["total_paid"]
 
 st.session_state.totalMonths
 st.session_state.totalInterest
 st.session_state.totalPaid
+
