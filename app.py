@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 import math
-from datetime import datetime, timedelta
 
 st.set_page_config(page_title=None, page_icon=None, layout="wide", initial_sidebar_state="auto", menu_items=None)
 
@@ -9,7 +8,7 @@ st.header("Debt Snowball Calculator")
 
 with st.container():
     st.text("Extra Monthly Payment")
-    st.slider("Extra Monthly Payment", 0, 1000, label_visibility="collapsed")
+    extra_payment_amt = st.slider("Extra Monthly Payment", 0, 1000, key="extraPaymentAmt", label_visibility="collapsed")
 
 with st.container():
 
@@ -108,9 +107,6 @@ def simulate_daily_interest(principal, annual_rate, monthly_payment, max_months 
     total_interest = 0.0
     months = 0
 
-    today = datetime.today()
-    next_payment_date = today + timedelta(days = 30)
-
     while balance > 0 and months < max_months:
         interest_this_month = 0.0
 
@@ -134,6 +130,9 @@ def simulate_daily_interest(principal, annual_rate, monthly_payment, max_months 
         "total_paid": round(total_paid, 2)
     }
 
+if "debtSnowballAmt" not in st.session_state:
+    st.session_state.debtSnowballAmt = 0
+
 if "totalMonths" not in st.session_state:
     st.session_state.totalMonths = 0
 
@@ -143,26 +142,35 @@ if "totalInterest" not in st.session_state:
 if "totalPaid" not in st.session_state:
     st.session_state.totalPaid = 0
 
+st.session_state.debtSnowballAmt = 0
 st.session_state.totalMonths = 0
 st.session_state.totalInterest = 0
 st.session_state.totalPaid = 0
 
-for i in range(len(debts)):
-    balance = debts[i]["balance"]
-    payment = debts[i]["min_payment"]
-    rate = debts[i]["interest_rate"]
-    compounding = debts[i]["compounding"]
+sorted_debts = sorted(debts, key=lambda x: x["balance"])
+
+for i in range(len(sorted_debts)):
+    balance = sorted_debts[i]["balance"]
+    payment = sorted_debts[i]["min_payment"] + st.session_state.debtSnowballAmt + extra_payment_amt
+    rate = sorted_debts[i]["interest_rate"]
+    compounding = sorted_debts[i]["compounding"]
     if balance and payment and rate: 
         if compounding == "monthly":
             result = calculate_monthly_interest(balance, rate, payment)
         elif compounding == "daily":
             result = simulate_daily_interest(balance, rate, payment)
+        st.write(sorted_debts[i])
         st.write(result)
+        st.session_state.debtSnowballAmt += sorted_debts[i]["min_payment"]
         st.session_state.totalMonths += result["months"]
         st.session_state.totalInterest += result["total_interest"]
         st.session_state.totalPaid += result["total_paid"]
 
+st.session_state.debtSnowballAmt
 st.session_state.totalMonths
 st.session_state.totalInterest
 st.session_state.totalPaid
 
+
+# reorder based on interest rate or balance checkbox/switch?
+# needs to simulate payoff with extra payment amount + minimum payment from paid off debt
