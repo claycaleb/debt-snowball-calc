@@ -72,7 +72,7 @@ for i in range(1, st.session_state.totalDebts + 1):
     debts.append(debt_data)
 
 def calculate_monthly_interest(principal, annual_rate, monthly_payment):
-    rate = (annual_rate / 100) / 12
+    rate = annual_rate / 100 / 12
 
     if monthly_payment <= principal * rate:
         raise ValueError("Monthly payment is too low to ever pay off the loan.")
