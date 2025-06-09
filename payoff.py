@@ -1,5 +1,15 @@
 import streamlit as st
 from calculations import calculate_monthly_interest, simulate_daily_interest
+from components.render_debt_row import render_debt_row
+
+def prepare_debts(cols):
+    debts = []
+    for i in range(1, st.session_state.totalDebts + 1):
+        debt_data = render_debt_row(i, cols)
+        debts.append(debt_data)
+    
+    sorted_debts = sorted(debts, key=lambda x: x["balance"])
+    return sorted_debts
 
 def process_debts(sorted_debts, extra_payment_amt):
     for i in range(len(sorted_debts)):

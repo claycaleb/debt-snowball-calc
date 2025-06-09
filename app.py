@@ -1,8 +1,7 @@
 import pandas as pd
 import streamlit as st
-from components.render_debt_row import render_debt_row
 from state import init_session_state, reset_session_state_values
-from payoff import process_debts
+from payoff import prepare_debts, process_debts
 
 st.set_page_config(page_title=None, page_icon=None, layout="wide", initial_sidebar_state="auto", menu_items=None)
 
@@ -38,21 +37,11 @@ with st.container():
         if st.session_state.totalDebts > 1: 
             st.session_state.totalDebts -= 1
 
-debts = []
-for i in range(1, st.session_state.totalDebts + 1):
-    debt_data = render_debt_row(i, cols)
-    debts.append(debt_data)
+sorted_debts = prepare_debts(cols)
 
 reset_session_state_values()
-
-sorted_debts = sorted(debts, key=lambda x: x["balance"])
 
 # CALCULATE BUTTON
 with st.container():
     if st.button("Calculate"):
         process_debts(sorted_debts, extra_payment_amt)
-
-st.session_state.debtSnowballAmt
-st.session_state.totalMonths
-st.session_state.totalInterest
-st.session_state.totalPaid
