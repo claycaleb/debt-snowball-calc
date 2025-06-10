@@ -1,5 +1,6 @@
+import pandas as pd
 import streamlit as st
-from calculations import calculate_monthly_interest, simulate_daily_interest
+from calculations import simulate_monthly_interest, simulate_daily_interest
 from components.render_debt_row import render_debt_row
 
 def prepare_debts(cols):
@@ -19,12 +20,14 @@ def process_debts(sorted_debts, extra_payment_amt):
         compounding = sorted_debts[i]["compounding"]
         if balance and payment and rate: 
             if compounding == "monthly":
-                result = calculate_monthly_interest(balance, rate, payment)
+                result = simulate_monthly_interest(balance, rate, payment)
             elif compounding == "daily":
                 result = simulate_daily_interest(balance, rate, payment)
             st.write(sorted_debts[i])
-            st.write(result)
+            df = pd.DataFrame(result)
+            st.write(df)
+            st.write(df["Balance"].iloc[-1])
             st.session_state.debtSnowballAmt += sorted_debts[i]["min_payment"]
-            st.session_state.totalMonths += result["months"]
-            st.session_state.totalInterest += result["total_interest"]
-            st.session_state.totalPaid += result["total_paid"]
+            # st.session_state.totalMonths += result["months"]
+            # st.session_state.totalInterest += result["total_interest"]
+            # st.session_state.totalPaid += result["total_paid"]

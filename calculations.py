@@ -1,23 +1,37 @@
-import math
+def simulate_monthly_interest(principal, annual_rate, monthly_payment, max_months = 360):
+    data = []
+    r_monthly = annual_rate / 100 / 12
+    balance = principal
+    total_paid = 0.0
+    total_interest = 0.0
+    months = 0
 
-def calculate_monthly_interest(principal, annual_rate, monthly_payment):
-    rate = annual_rate / 100 / 12
+    while balance > 0 and months < max_months:
+        interest_this_month = balance * r_monthly
+        balance += interest_this_month
+        payment = min(monthly_payment, balance)
+        balance -= payment
+        total_paid += payment
+        total_interest += interest_this_month
+        months += 1
 
-    if monthly_payment <= principal * rate:
-        raise ValueError("Monthly payment is too low to ever pay off the loan.")
+        if payment <= interest_this_month:
+            raise ValueError("Monthly payment too low to cover accrued interest.")
+        
+        row = {
+            "Month": months,
+            "Payment": round(payment, 2),
+            "Interest": round(interest_this_month, 2),
+            "Principal": round(payment, 2) - round(interest_this_month, 2),
+            "Balance": round(balance, 2)
+        }
 
-    numerator = monthly_payment / (monthly_payment - principal * rate)
-    n = math.log(numerator) / math.log(1 + rate)
-    total_paid = monthly_payment * n
-    total_interest = total_paid - principal
+        data.append(row)
 
-    return {
-        "months": round(n, 0),
-        "total_interest": round(total_interest, 2),
-        "total_paid": round(total_paid, 2)
-    }
+    return data
 
-def simulate_daily_interest(principal, annual_rate, monthly_payment, max_months = 600):
+def simulate_daily_interest(principal, annual_rate, monthly_payment, max_months = 360):
+    data = []
     r_daily = annual_rate / 100 / 365
     balance = principal
     total_paid = 0.0
@@ -41,8 +55,14 @@ def simulate_daily_interest(principal, annual_rate, monthly_payment, max_months 
         if payment <= interest_this_month:
             raise ValueError("Monthly payment too low to cover accrued interest.")
 
-    return {
-        "months": months,
-        "total_interest": round(total_interest, 2),
-        "total_paid": round(total_paid, 2)
+    row = {
+        "Month": months,
+        "Payment": round(payment, 2),
+        "Interest": round(interest_this_month, 2),
+        "Principal": round(payment, 2) - round(interest_this_month, 2),
+        "Balance": round(balance, 2)
     }
+
+    data.append(row)
+
+    return data
